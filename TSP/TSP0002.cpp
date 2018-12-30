@@ -1,62 +1,84 @@
 #include<iostream>
-#include<algorithm>
 using namespace std;
-const int MAX=21;
-const int INF=0x3f3f3f3f;
-void mySwap(int *a, int *b)
+class travellingSalesmanProblem
 {
-    int tmp = *a;
-    *a = *b;
-    *b = tmp;
-}
-void myReverse(int *a, int *b)
+    private:
+        int city_num;
+        int **dis;
+        int **process;
+    public:
+        travellingSalesmanProblem(int city_num);
+        void dynamicProgramming();
+        void printdis();
+};
+//构造函数
+travellingSalesmanProblem::travellingSalesmanProblem(int num)
 {
-    for(b--; a<b; a++,b--)
-        mySwap(a,b);
-}
-bool myNextPermutation(int *begin, int *end)
-{
-    if(begin >= end)
-        return false;
-    int *i = end - 1;
-    while(i > begin && *(i-1) >= *i)
-        i--;
-    if(i == begin)
+    city_num=num;
+    dis=new int *[city_num];
+    for(int i=0;i<city_num;i++)
     {
-        myReverse(begin, end);
-        return false;
+        dis[i] = new int [city_num];
+        for(int j=0;j<city_num;j++)
+        {
+                if(i==j)
+                    dis[i][j]=0;
+                else 
+                    cin>>dis[i][j];
+        }
     }
-    i--;
-    int *j = end - 1;
-    while(*i >= *j)
-        j--;
-    mySwap(i,j);
-    myReverse(i+1,end);
+    process = new int *[city_num];
+    for(int i=0;i<city_num;i++)
+    {
+        process[i] = new int[1<<(city_num-1)];
+    }
+}
+void travellingSalesmanProblem::dynamicProgramming()
+{
+    int i,j,k;
+    for(i=0;i<city_num;i++)
+    {
+        process[i][0] = dis[i][0];
+    }
+    for(i=1;i<(1<<(city_num-1));i++)
+    {
+        for(j=0;j<city_num;j++)
+        {
+            process[j][i]=0x3f3f3f3f;
+
+            if((i>>(j-1)&1)==1)
+                continue;
+
+            for(k=1;k<city_num;k++)
+            {
+                if((i>>(k-1)&1)==0)
+                    continue;
+
+                if(process[j][i]>dis[j][k]+process[k][i^(1<<(k-1))])
+                    process[j][i]=dis[j][k]+process[k][i^(1<<(k-1))];
+            }
+        }
+    }
+    cout<<process[0][(1<<(city_num-1))-1]<<endl;
+}
+//打印
+void travellingSalesmanProblem::printdis()
+{
+    for(int i=0;i<city_num;i++)
+    {
+        for(int j=0;j<city_num;j++)
+        {
+            cout<<dis[i][j]<<" ";
+        }
+        cout<<endl;
+    }
 }
 int main()
 {
-    int n,sum=0,minLength=INF;
-    int arr[MAX][MAX]={0};
-    int permutation[MAX]={0};
+    int n;
     cin>>n;
-    for(int i=0;i<n;i++){
-        for(int j=0;j<n;j++){
-            if(i!=j)
-                cin>>arr[i][j];
-        }
-    }
-    for(int i=0;i<n;i++){
-        permutation[i]=i;
-    }
-
-    do{
-        for(int i=0;i<n-1;i++)
-            sum+=arr[permutation[i]][permutation[i+1]];
-        sum+=arr[permutation[n-1]][permutation[0]];
-        if(minLength>sum)
-            minLength=sum;
-        else sum = 0;
-    }while(myNextPermutation(permutation,permutation+n));
-    cout<<minLength<<endl;
+    travellingSalesmanProblem tsp(n);
+    //tsp.printdis();
+    tsp.dynamicProgramming();
     return 0;
 }
